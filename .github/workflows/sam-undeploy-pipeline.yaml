@@ -1,0 +1,69 @@
+name: SAM Deploy Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      stack_name:
+        required: true
+        type: string
+      pipeline_execution_role_arn:
+        required: true
+        type: string
+      artifacts_s3_bucket_name:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      sam_config_filename:
+        required: true
+        type: string
+      sam_config_environment_name:
+        required: true
+        type: string
+    secrets:
+      PIPELINE_USER_ACCESS_KEY_ID:
+        required: true
+      PIPELINE_USER_SECRET_ACCESS_KEY:
+        required: true
+
+env:
+  SAM_CLI_TELEMETRY: 0
+  PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.PIPELINE_USER_ACCESS_KEY_ID }}
+  PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.PIPELINE_USER_SECRET_ACCESS_KEY }}
+  STACK_NAME: ${{ inputs.stack_name }}
+  PIPELINE_EXECUTION_ROLE: ${{ inputs.pipeline_execution_role_arn }}
+  ARTIFACTS_BUCKET: ${{ inputs.artifacts_s3_bucket_name }}
+  REGION: ${{ inputs.region }}
+  SAM_CONFIG_FILENAME: ${{ inputs.sam_config_filename }}
+  SAM_CONFIG_ENVIRONMENT_NAME: ${{ inputs.sam_config_environment_name }}
+
+jobs:
+  undeploy-sam:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+
+      - name: Assume the pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+          role-to-assume: ${{ env.PIPELINE_EXECUTION_ROLE }}
+          role-session-name: github-action-undeploy-sam
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete stack
+        run: |
+          sam delete \
+            --no-prompts \
+            --stack-name ${STACK_NAME} \
+            --config-file ${SAM_CONFIG_FILENAME} \
+            --config-env ${SAM_CONFIG_ENVIRONMENT_NAME} \
+            --region ${REGION} \
+            --s3-bucket ${ARTIFACTS_BUCKET} \
+            --s3-prefix "${SAM_CONFIG_ENVIRONMENT_NAME}/${STACK_NAME}"
