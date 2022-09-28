@@ -37,13 +37,11 @@ env:
   SAM_CLI_TELEMETRY: 0
   PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.PIPELINE_USER_ACCESS_KEY_ID }}
   PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.PIPELINE_USER_SECRET_ACCESS_KEY }}
-  SAM_TEMPLATE: ${{ inputs.sam_template }}
   STACK_NAME: ${{ inputs.stack_name }}
   PIPELINE_EXECUTION_ROLE: ${{ inputs.pipeline_execution_role_arn }}
   CLOUDFORMATION_EXECUTION_ROLE: ${{ inputs.cloudformation_execution_role_arn }}
   ARTIFACTS_BUCKET: ${{ inputs.artifacts_s3_bucket_name }}
   REGION: ${{ inputs.region }}
-  SAM_CONFIG_FILENAME: ${{ inputs.sam_config_filename }}
   SAM_CONFIG_ENVIRONMENT_NAME: ${{ inputs.sam_config_environment_name }}
   SAM_PACKAGED_TEMPLATE: 'packaged-template.yaml'
 
@@ -58,12 +56,10 @@ jobs:
       - name: Build resources
         shell: bash
         run: |
-          env
-          ls -la
           sam build \
             --use-container \
-            --template ${SAM_TEMPLATE} \
-            --config-file ${SAM_CONFIG_FILENAME} \
+            --template ${{ inputs.sam_template }} \
+            --config-file ${{ inputs.sam_config_filename }} \
             --config-env ${SAM_CONFIG_ENVIRONMENT_NAME}
 
       - name: Assume the pipeline role
@@ -81,7 +77,7 @@ jobs:
         shell: bash
         run: |
           sam package \
-            --config-file ${SAM_CONFIG_FILENAME} \
+            --config-file ${{ inputs.sam_config_filename }} \
             --config-env ${SAM_CONFIG_ENVIRONMENT_NAME} \
             --region ${REGION} \
             --s3-bucket ${ARTIFACTS_BUCKET} \
@@ -94,7 +90,7 @@ jobs:
           sam deploy \
             --no-fail-on-empty-changeset \
             --stack-name ${STACK_NAME} \
-            --config-file ${SAM_CONFIG_FILENAME} \
+            --config-file ${{ inputs.sam_config_filename }} \
             --config-env ${SAM_CONFIG_ENVIRONMENT_NAME} \
             --region ${REGION} \
             --s3-bucket ${ARTIFACTS_BUCKET} \
