@@ -35,14 +35,6 @@ on:
 
 env:
   SAM_CLI_TELEMETRY: 0
-  PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.PIPELINE_USER_ACCESS_KEY_ID }}
-  PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.PIPELINE_USER_SECRET_ACCESS_KEY }}
-  STACK_NAME: ${{ inputs.stack_name }}
-  PIPELINE_EXECUTION_ROLE: ${{ inputs.pipeline_execution_role_arn }}
-  CLOUDFORMATION_EXECUTION_ROLE: ${{ inputs.cloudformation_execution_role_arn }}
-  ARTIFACTS_BUCKET: ${{ inputs.artifacts_s3_bucket_name }}
-  REGION: ${{ inputs.region }}
-  SAM_CONFIG_ENVIRONMENT_NAME: ${{ inputs.sam_config_environment_name }}
   SAM_PACKAGED_TEMPLATE: 'packaged-template.yaml'
 
 jobs:
@@ -60,15 +52,15 @@ jobs:
             --use-container \
             --template ${{ inputs.sam_template }} \
             --config-file ${{ inputs.sam_config_filename }} \
-            --config-env ${SAM_CONFIG_ENVIRONMENT_NAME}
+            --config-env ${{ inputs.sam_config_environment_name }}
 
       - name: Assume the pipeline role
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.REGION }}
-          role-to-assume: ${{ env.PIPELINE_EXECUTION_ROLE }}
+          aws-access-key-id: ${{ secrets.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+          role-to-assume: ${{ inputs.pipeline_execution_role_arn }}
           role-session-name: github-action-deploy-sam
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -78,10 +70,10 @@ jobs:
         run: |
           sam package \
             --config-file ${{ inputs.sam_config_filename }} \
-            --config-env ${SAM_CONFIG_ENVIRONMENT_NAME} \
-            --region ${REGION} \
-            --s3-bucket ${ARTIFACTS_BUCKET} \
-            --s3-prefix "${SAM_CONFIG_ENVIRONMENT_NAME}/${STACK_NAME}" \
+            --config-env ${{ inputs.sam_config_environment_name }} \
+            --region ${{ inputs.region }} \
+            --s3-bucket ${{ inputs.artifacts_s3_bucket_name }} \
+            --s3-prefix "${{ inputs.sam_config_environment_name }}/${{ inputs.stack_name }}" \
             --output-template-file "${SAM_PACKAGED_TEMPLATE}"
 
       - name: Deploy to account
@@ -89,12 +81,12 @@ jobs:
         run: |
           sam deploy \
             --no-fail-on-empty-changeset \
-            --stack-name ${STACK_NAME} \
+            --stack-name ${{ inputs.stack_name }} \
             --config-file ${{ inputs.sam_config_filename }} \
-            --config-env ${SAM_CONFIG_ENVIRONMENT_NAME} \
-            --region ${REGION} \
-            --s3-bucket ${ARTIFACTS_BUCKET} \
-            --s3-prefix "${SAM_CONFIG_ENVIRONMENT_NAME}/${STACK_NAME}" \
-            --role-arn ${CLOUDFORMATION_EXECUTION_ROLE} \
+            --config-env ${{ inputs.sam_config_environment_name }} \
+            --region ${{ inputs.region }} \
+            --s3-bucket ${{ inputs.artifacts_s3_bucket_name }} \
+            --s3-prefix "${{ inputs.sam_config_environment_name }}/${{ inputs.stack_name }}" \
+            --role-arn ${{ inputs.cloudformation_execution_role_arn }} \
             --template "${SAM_PACKAGED_TEMPLATE}"
 
