@@ -58,6 +58,8 @@ jobs:
       - name: Build resources
         shell: bash
         run: |
+          env
+          ls -la
           sam build \
             --use-container \
             --template ${SAM_TEMPLATE} \
