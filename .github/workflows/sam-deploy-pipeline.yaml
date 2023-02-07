@@ -59,12 +59,21 @@ jobs:
           IFS=';'
           variables=${{ inputs.replacement_variable_list }}
           values=${{ inputs.replacement_value_list }}
-          echo "There are ${!variables[*]} replacements to be evaluated."
-          for pos in ${!variables[*]}
-          do
-            echo "Replacing %variables[$pos]% by 'values[$pos]'"
-            sed -i -e "s/%variables[$pos]%/values[$pos]/g" ${{ inputs.sam_config_filename }}
-          done
+          if [[ -z "${variables}" ]]
+            echo "There are no replacements to be evaluated."
+          elif [[ ${!variables[*]} == 0 ]]
+          then
+            echo "There are 1 replacement to be evaluated."
+            echo "Replacing %${variables}% by '${values}'"
+            sed -i -e "s/%${variables}%/${values}/g" ${{ inputs.sam_config_filename }}
+          else
+            echo "There are ${!variables[*]} replacements to be evaluated."
+            for pos in ${!variables[*]}
+            do
+              echo "Replacing %variables[$pos]% by 'values[$pos]'"
+              sed -i -e "s/%variables[$pos]%/values[$pos]/g" ${{ inputs.sam_config_filename }}
+            done
+          fi
           IFS=$OLD_IFS
       - name: Build resources
         shell: bash
