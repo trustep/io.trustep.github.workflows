@@ -60,6 +60,7 @@ jobs:
           variables=${{ inputs.replacement_variable_list }}
           values=${{ inputs.replacement_value_list }}
           if [[ -z "${variables}" ]]
+          then
             echo "There are no replacements to be evaluated."
           elif [[ ${!variables[*]} == 0 ]]
           then
