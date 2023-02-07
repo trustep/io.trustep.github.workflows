@@ -27,6 +27,14 @@ on:
       sam_config_environment_name:
         required: true
         type: string
+      replacement_variable_list:
+        description: 'A comma separeted list of replacemente variables to iterate to be applied on sam_config_filename'
+        required: false
+        type: string
+      replacement_value_list:
+        description: 'A comma separeted list of replacemente values to iterate to be applied on sam_config_filename'
+        required: false
+        type: string
     secrets:
       PIPELINE_USER_ACCESS_KEY_ID:
         required: true
@@ -44,7 +52,20 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - uses: aws-actions/setup-sam@v1
-
+      - name: Applying Replacements
+        shell: bash
+        run: |
+          OLD_IFS=$IFS
+          IFS=';'
+          variables=${{ inputs.replacement_variable_list }}
+          values=${{ inputs.replacement_value_list }}
+          echo "There are ${!variables[*]} replacements to be evaluated."
+          for pos in ${!variables[*]}
+          do
+            echo "Replacing %variables[$pos]% by 'values[$pos]'"
+            sed -i -e "s/%variables[$pos]%/values[$pos]/g" ${{ inputs.sam_config_filename }}
+          done
+          IFS=$OLD_IFS
       - name: Build resources
         shell: bash
         run: |
