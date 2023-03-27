@@ -49,9 +49,12 @@ jobs:
   deploy-sam:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
+      - name: Setup Checkout
+        uses: actions/checkout@v3
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+        with: 
+          use-installer: true
       - name: Applying Replacements
         shell: bash
         run: |
