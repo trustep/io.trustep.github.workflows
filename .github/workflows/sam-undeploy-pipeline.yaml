@@ -1,4 +1,4 @@
-name: SAM Deploy Pipeline
+name: SAM Undeploy Pipeline
 
 on:
   workflow_call:
