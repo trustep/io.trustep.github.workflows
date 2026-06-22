@@ -23,11 +23,6 @@ on:
         description: 'A comma separeted list of replacemente values to iterate to be applied on sam_config_filename'
         required: false
         type: string
-      skip_checkout:
-        description: 'Skip repository checkout when the workspace was already prepared before this workflow runs'
-        required: false
-        type: boolean
-        default: false        
     secrets:
       PIPELINE_USER_ACCESS_KEY_ID:
         required: true
@@ -51,7 +46,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Checkout
-        if: ${{ !inputs.skip_checkout }}
         uses: actions/checkout@v7
       - name: Setup SAM
         uses: aws-actions/setup-sam@v3
