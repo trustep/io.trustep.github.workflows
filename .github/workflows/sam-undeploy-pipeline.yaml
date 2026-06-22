@@ -35,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Setup SAM
-        uses: aws-actions/setup-sam@v2
+        uses: aws-actions/setup-sam@v3
         with: 
           use-installer: true
 
