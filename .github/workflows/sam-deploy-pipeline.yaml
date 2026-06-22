@@ -23,6 +23,11 @@ on:
         description: 'A comma separeted list of replacemente values to iterate to be applied on sam_config_filename'
         required: false
         type: string
+      skip_changeset_execution:
+        description: 'Equivalente a SKIP_CHANGESET_EXECUTION del pipe Bitbucket (true|false). Si es true, sam deploy usa --no-execute-changeset.'
+        required: false
+        type: boolean
+        default: false
     secrets:
       PIPELINE_USER_ACCESS_KEY_ID:
         required: true
@@ -109,6 +114,10 @@ jobs:
       - name: Deploy to account
         shell: bash
         run: |
+          NO_EXECUTE_CHANGESET=()
+          if [[ "${{ inputs.skip_changeset_execution }}" == "true" ]]; then
+            NO_EXECUTE_CHANGESET=(--no-execute-changeset)
+          fi
           sam deploy \
             --no-fail-on-empty-changeset \
             --stack-name ${{ inputs.stack_name }} \
