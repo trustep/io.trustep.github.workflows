@@ -33,11 +33,11 @@ on:
         required: true
       PIPELINE_USER_SECRET_ACCESS_KEY:
         required: true
-      PROD_ARTIFACTS_BUCKET:
+      ARTIFACTS_BUCKET:
         required: true
-      PROD_CLOUDFORMATION_EXECUTION_ROLE:
+      CLOUDFORMATION_EXECUTION_ROLE:
         required: true
-      PROD_PIPELINE_EXECUTION_ROLE:
+      PIPELINE_EXECUTION_ROLE:
         required: true
       REGION:
         required: true
@@ -95,7 +95,7 @@ jobs:
           aws-access-key-id: ${{ secrets.PIPELINE_USER_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PIPELINE_USER_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.REGION }}
-          role-to-assume: ${{ secrets.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-to-assume: ${{ secrets.PIPELINE_EXECUTION_ROLE }}
           role-session-name: github-action-deploy-sam
           role-duration-seconds: 3600
           role-skip-session-tagging: true
@@ -107,7 +107,7 @@ jobs:
             --config-file ${{ inputs.sam_config_filename }} \
             --config-env ${{ inputs.sam_config_environment_name }} \
             --region ${{ secrets.REGION }} \
-            --s3-bucket ${{ secrets.PROD_ARTIFACTS_BUCKET }} \
+            --s3-bucket ${{ secrets.ARTIFACTS_BUCKET }} \
             --s3-prefix "${{ inputs.sam_config_environment_name }}/${{ inputs.stack_name }}" \
             --output-template-file "${SAM_PACKAGED_TEMPLATE}"
 
@@ -124,8 +124,8 @@ jobs:
             --config-file ${{ inputs.sam_config_filename }} \
             --config-env ${{ inputs.sam_config_environment_name }} \
             --region ${{ secrets.REGION }} \
-            --s3-bucket ${{ secrets.PROD_ARTIFACTS_BUCKET }} \
+            --s3-bucket ${{ secrets.ARTIFACTS_BUCKET }} \
             --s3-prefix "${{ inputs.sam_config_environment_name }}/${{ inputs.stack_name }}" \
-            --role-arn ${{ secrets.PROD_CLOUDFORMATION_EXECUTION_ROLE }} \
+            --role-arn ${{ secrets.CLOUDFORMATION_EXECUTION_ROLE }} \
             --template "${SAM_PACKAGED_TEMPLATE}"
 
